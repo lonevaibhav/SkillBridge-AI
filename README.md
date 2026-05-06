@@ -197,5 +197,5 @@ MIT
 
 ---
 
-**Built by**: [Your Name]  
+**Built by**: Vaibhav Singh 
 **Last Updated**: May 2026
