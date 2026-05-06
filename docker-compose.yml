@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: skillbridge_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - skillbridge_network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: skillbridge_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - skillbridge_network
+    # Run: docker exec skillbridge_ollama ollama pull mistral
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: skillbridge_backend
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URL: mongodb://admin:password@mongodb:27017/skillbridge_ai?authSource=admin
+      OLLAMA_BASE_URL: http://ollama:11434
+      DEBUG: "true"
+    depends_on:
+      - mongodb
+      - ollama
+    volumes:
+      - ./backend:/app
+    networks:
+      - skillbridge_network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  mongodb_data:
+  ollama_data:
+
+networks:
+  skillbridge_network:
+    driver: bridge
